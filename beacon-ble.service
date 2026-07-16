@@ -1,0 +1,34 @@
+[Unit]
+Description=Beacon BLE Scanner (Orchestrator)
+After=network.target bluetooth.target
+Wants=bluetooth.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/home/beacon1337/scripts
+
+# Salt-Pfad für DSGVO-konformes Hashing von BLE-Adressen und ggf. SSIDs.
+# Identischer Salt wie für WiFi, damit Cross-Modal-Vergleiche möglich sind.
+Environment="BEACON_SALT_PATH=/home/beacon1337/.beacon_salt"
+
+ExecStart=/home/beacon1337/beacon-env/bin/python3 /home/beacon1337/scripts/main_ble.py
+
+# Restart-Verhalten: bei jedem Exit neu starten, mit Backoff
+Restart=always
+RestartSec=10
+StartLimitIntervalSec=600
+StartLimitBurst=10
+
+# Logging zusätzlich via journalctl (neben unseren eigenen Log-Files)
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=beacon-ble
+
+# Damit der Prozess Zeit für sauberen Shutdown bekommt
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target

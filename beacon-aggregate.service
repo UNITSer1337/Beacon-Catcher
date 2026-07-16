@@ -1,0 +1,31 @@
+[Unit]
+Description=Beacon Aggregation und Clustering (BLE + WiFi)
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/home/beacon1337/scripts
+
+Environment="BEACON_SALT_PATH=/home/beacon1337/.beacon_salt"
+
+# --- BLE-Pipeline (immer Full-Rebuild, kein Flag) ---
+ExecStart=/home/beacon1337/beacon-env/bin/python3 /home/beacon1337/scripts/ble_aggregate_bursts.py
+ExecStart=/home/beacon1337/beacon-env/bin/python3 /home/beacon1337/scripts/ble_cluster_3a.py
+ExecStart=/home/beacon1337/beacon-env/bin/python3 /home/beacon1337/scripts/ble_cluster_3c.py
+
+# --- WiFi-Pipeline (incremental by default, daher --rebuild) ---
+ExecStart=/home/beacon1337/beacon-env/bin/python3 /home/beacon1337/scripts/aggregate_bursts.py --rebuild
+ExecStart=/home/beacon1337/beacon-env/bin/python3 /home/beacon1337/scripts/cluster_matching.py --rebuild
+ExecStart=/home/beacon1337/beacon-env/bin/python3 /home/beacon1337/scripts/cluster_matching_3b.py --rebuild
+ExecStart=/home/beacon1337/beacon-env/bin/python3 /home/beacon1337/scripts/cluster_matching_3c.py --rebuild
+
+# --- Visit-Extraktion (Stufe 4, beide Modalitaeten) ---
+ExecStart=/home/beacon1337/beacon-env/bin/python3 /home/beacon1337/scripts/extract_visits.py --mode wifi --rebuild
+ExecStart=/home/beacon1337/beacon-env/bin/python3 /home/beacon1337/scripts/extract_visits.py --mode ble  --rebuild
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=beacon-aggregate
+
+# Damit ein langsamer Lauf den Timer nicht doppelt triggert
+TimeoutStartSec=1800

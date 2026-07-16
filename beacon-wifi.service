@@ -1,0 +1,38 @@
+[Unit]
+Description=Beacon WiFi Scanner (Orchestrator)
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/home/beacon1337/scripts
+
+# Salt-Pfad für DSGVO-konformes Hashing von MAC und SSID.
+# Wird beim ersten Start automatisch angelegt (siehe crypto.py).
+# Zentral hinterlegt, damit alle Services (wifi/ble/aggregate) denselben Salt nutzen.
+Environment="BEACON_SALT_PATH=/home/beacon1337/.beacon_salt"
+
+# Vor dem Scanner-Start prüfen ob wlan1mon existiert.
+# Falls nein: airmon-ng start wlan1 ausführen.
+ExecStartPre=/bin/bash -c 'iw dev wlan1mon info >/dev/null 2>&1 || /usr/sbin/airmon-ng start wlan1'
+
+ExecStart=/home/beacon1337/beacon-env/bin/python3 /home/beacon1337/scripts/main_wifi.py
+
+# Restart-Verhalten
+Restart=always
+RestartSec=10
+StartLimitIntervalSec=600
+StartLimitBurst=10
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=beacon-wifi
+
+# Shutdown-Handling
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target

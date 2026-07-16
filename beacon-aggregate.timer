@@ -1,0 +1,15 @@
+[Unit]
+Description=Trigger Beacon Aggregation alle 6 Stunden
+
+[Timer]
+# Erster Lauf 15 min nach Boot, dann alle 6 Stunden
+OnBootSec=15min
+OnUnitActiveSec=6h
+
+# Falls Pi waehrend des Trigger-Zeitpunkts aus war, holt der Lauf nach
+Persistent=true
+
+Unit=beacon-aggregate.service
+
+[Install]
+WantedBy=timers.target
